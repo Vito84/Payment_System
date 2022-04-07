@@ -6,7 +6,11 @@ const val COMMISSION_MASTERCARD_MAESTRO = 20
 const val PERCENTAGE_MASTERCARD_MAESTRO = 0.6
 
 fun main() {
+    total()
 
+}
+
+fun total() {
     print(
         "Выберите платежную систему. По умолчанию VK Pay." +
                 "\n Доступно следующее: " +
@@ -16,20 +20,14 @@ fun main() {
                 "\n "
     )
     val choosingPaymentSystem = readLine()?.toInt() ?: return
+    print("Введите сумму предыдущих переводов в этом месяце в рублях:\n")
+    val amountOfPreviousTransfers = readLine()?.toInt() ?: return
     print("Введите сумму перевода в рублях:\n")
     val transferAmount = readLine()?.toInt() ?: return
 
-    val totalAmountOfTransfersVisaMir = 0
-    val totalAmountOfTransfersMastercardMaestro = 0
-    val totalAmountOfVkPay = 0
-
-    val TransfersVisaMirSumm = totalAmountOfTransfersVisaMir + transferAmount
-    val TransfersMastercardMaestroSumm = totalAmountOfTransfersMastercardMaestro + transferAmount
-    val TransfersVkPaySumm = totalAmountOfVkPay + transferAmount
-
-    val resultVisaMirRKop = (calculationVisaMir(TransfersVisaMirSumm, transferAmount)
+    val resultVisaMirRKop = (calculationVisaMir(transferAmount)
             * 100).toInt() % 100
-    val resultMastercardMaestroKop = (calculationMastercardMaestro(TransfersMastercardMaestroSumm, transferAmount)
+    val resultMastercardMaestroKop = (calculationMastercardMaestro(transferAmount)
             * 100).toInt() % 100
 
     when (choosingPaymentSystem) {
@@ -37,8 +35,8 @@ fun main() {
             "За перевод суммы $transferAmount руб. " +
                     "Вы заплатите комиссию в размере ${
                         calculationVisaMir(
-                            TransfersVisaMirSumm,
-                            transferAmount
+                            transferAmount,
+                            amountOfPreviousTransfers
                         ).toInt()
                     } руб. " +
                     "$resultVisaMirRKop коп. "
@@ -47,42 +45,44 @@ fun main() {
             "За перевод суммы $transferAmount руб. " +
                     "Вы заплатите комиссию в размере ${
                         calculationMastercardMaestro(
-                            TransfersMastercardMaestroSumm,
-                            transferAmount
+                            transferAmount,
+                            amountOfPreviousTransfers
                         ).toInt()
                     } руб. " +
                     "$resultMastercardMaestroKop коп. "
         )
         3 -> print(
-            "За перевод суммы ${calculationVkPay(TransfersVkPaySumm, transferAmount)} руб. " +
+            "За перевод суммы ${calculationVkPay(transferAmount, amountOfPreviousTransfers)} руб. " +
                     "Комиссия в платежной системе VK Pay не взымаются."
         )
     }
 }
 
 fun calculationVisaMir(
-    TransfersVisaMirSumm: Int,
-    transferAmount: Int
+    transferAmount: Int,
+    amountOfPreviousTransfers: Int = 0
 ): Double = when {
-    TransfersVisaMirSumm > 4_670 && TransfersVisaMirSumm <= 600_000 ->
+    amountOfPreviousTransfers + transferAmount > 4_670 && amountOfPreviousTransfers + transferAmount <= 600_000 ->
         (transferAmount * PERCENTAGE_VISA_MIR) / 100
-    TransfersVisaMirSumm <= 4_670 -> COMMISSION_VISA_MIR.toDouble()
+    amountOfPreviousTransfers + transferAmount <= 4_670 -> COMMISSION_VISA_MIR.toDouble()
     else -> error("превышен лимит перевода.")
 }
 
 fun calculationMastercardMaestro(
-    TransfersMastercardMaestroSumm: Int,
-    transferAmount: Int
+    transferAmount: Int,
+    amountOfPreviousTransfers: Int = 0
+
 ): Double = when {
-    TransfersMastercardMaestroSumm > 0 && TransfersMastercardMaestroSumm <= 75_000 ->
+    amountOfPreviousTransfers + transferAmount > 0 && amountOfPreviousTransfers + transferAmount <= 75_000 ->
         (transferAmount * PERCENTAGE_MASTERCARD_MAESTRO) / 100 + COMMISSION_MASTERCARD_MAESTRO
     else -> error("превышен лимит перевода.")
 }
 
 fun calculationVkPay(
-    TransfersVkPaySumm: Int,
-    transferAmount: Int
+    transferAmount: Int,
+    amountOfPreviousTransfers: Int = 0
+
 ) = when {
-    TransfersVkPaySumm > 0 && TransfersVkPaySumm <= 40_000 -> transferAmount
+    amountOfPreviousTransfers + transferAmount > 0 && amountOfPreviousTransfers + transferAmount <= 40_000 -> transferAmount
     else -> error("превышен лимит перевода.")
 }
